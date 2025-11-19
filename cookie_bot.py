@@ -9,14 +9,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-"""
-Cookie Clicker automation script using Selenium.
-The bot clicks the main cookie, buys buildings using a cps/price heuristic,
-purchases available upgrades, and catches golden cookies. The goal is to be a
-clean MVP that follows the teacher's constraints (no sleep, no xpath, etc.).
-"""
-
-
 @dataclass
 class BuildingInfo:
     element: object
@@ -57,7 +49,6 @@ def setup_driver() -> webdriver.Chrome:
 
     wait = WebDriverWait(driver, 30)
     try:
-        # Choose English language if prompt appears
         lang_btn = wait.until(EC.element_to_be_clickable((By.ID, "langSelect-EN")))
         lang_btn.click()
     except Exception:
@@ -112,7 +103,9 @@ def get_buildings(driver: webdriver.Chrome) -> List[BuildingInfo]:
     return buildings
 
 
-def choose_best_building(buildings: List[BuildingInfo], current_cookies: float) -> Optional[BuildingInfo]:
+def choose_best_building(
+    buildings: List[BuildingInfo], current_cookies: float
+) -> Optional[BuildingInfo]:
     affordable = [b for b in buildings if b.price and b.price <= current_cookies]
     if not affordable:
         return None
