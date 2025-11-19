@@ -7,6 +7,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+
 @dataclass
 class BuildingInfo:
     element: object
@@ -38,13 +40,76 @@ BUILDING_BASE_CPS = {
 }
 
 
+def accept_cookies(driver: webdriver.Chrome, timeout: float = 3.0) -> None:
+    """Try to accept cookie/consent dialogs that appear on the page.
+
+    This function attempts a few common button texts and also scans
+    iframes in case the consent widget is embedded.
+    It's conservative and swallows errors so it never blocks the main flow.
+    """
+    xpaths = [
+        "//button[normalize-space()='Consent']",
+        "//button[normalize-space()='Got it!']",
+        "//a[normalize-space()='Got it!']",
+        "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'consent')]",
+        "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'accept')]",
+        "//button[contains(., 'Accept all')]",
+    ]
+
+    try:
+        # Try main document first
+        for xp in xpaths:
+            try:
+                el = WebDriverWait(driver, timeout).until(
+                    EC.element_to_be_clickable((By.XPATH, xp))
+                )
+                el.click()
+                time.sleep(0.4)
+                return
+            except Exception:
+                continue
+
+        # If not found, try inside iframes
+        iframes = driver.find_elements(By.TAG_NAME, "iframe")
+        for frame in iframes:
+            try:
+                driver.switch_to.frame(frame)
+                for xp in xpaths:
+                    try:
+                        el = WebDriverWait(driver, timeout).until(
+                            EC.element_to_be_clickable((By.XPATH, xp))
+                        )
+                        el.click()
+                        time.sleep(0.4)
+                        driver.switch_to.default_content()
+                        return
+                    except Exception:
+                        continue
+            except Exception:
+                # Some iframes may be cross-origin and will raise on switch
+                pass
+            finally:
+                try:
+                    driver.switch_to.default_content()
+                except Exception:
+                    pass
+    except Exception:
+        # Never fail the whole setup because of consent handling
+        return
+
+
 def setup_driver() -> webdriver.Chrome:
     options = Options()
     options.add_argument("--disable-notifications")
     options.add_argument("--disable-infobars")
     driver = webdriver.Chrome(options=options)
     driver.get("https://orteil.dashnet.org/cookieclicker/")
-
+    # Try to dismiss cookie / consent popups that block interaction
+    try:
+        accept_cookies(driver)
+    except Exception:
+        # be tolerant if consent handling fails
+        pass
     wait = WebDriverWait(driver, 30)
     try:
         lang_btn = wait.until(EC.element_to_be_clickable((By.ID, "langSelect-EN")))
