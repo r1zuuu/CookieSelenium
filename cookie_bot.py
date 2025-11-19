@@ -7,17 +7,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-
-
-"""
-Cookie Clicker automation script using Selenium.
-The bot clicks the main cookie, buys buildings using a cps/price heuristic,
-purchases available upgrades, and catches golden cookies. The goal is to be a
-clean MVP that follows the teacher's constraints (no sleep, no xpath, etc.).
-"""
-
-
 @dataclass
 class BuildingInfo:
     element: object
@@ -58,53 +47,13 @@ def setup_driver() -> webdriver.Chrome:
 
     wait = WebDriverWait(driver, 30)
     try:
-        # Choose English language if prompt appears
         lang_btn = wait.until(EC.element_to_be_clickable((By.ID, "langSelect-EN")))
         lang_btn.click()
     except Exception:
         pass
 
-    handle_consent_prompts(driver)
-
     wait.until(EC.presence_of_element_located((By.ID, "bigCookie")))
     return driver
-
-
-def handle_consent_prompts(driver: webdriver.Chrome):
-    """Close GDPR / consent overlays if they appear."""
-    wait = WebDriverWait(driver, 5)
-    selectors = [
-        "#promptContent #promptOption0",
-        "#promptContent .button",
-        ".cc_btn_accept_all",
-        ".fc-button.fc-cta-consent",
-        "#acceptCons",
-        "#onetrust-accept-btn-handler",
-    ]
-    for selector in selectors:
-        try:
-            button = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
-            button.click()
-            return
-        except TimeoutException:
-            continue
-        except Exception:
-            continue
-
-    try:
-        buttons = driver.find_elements(By.TAG_NAME, "button")
-        for button in buttons:
-            label = (button.text or "").strip().lower()
-            if not label:
-                continue
-            if any(keyword in label for keyword in ("accept", "consent", "agree", "allow")):
-                try:
-                    button.click()
-                    return
-                except Exception:
-                    continue
-    except Exception:
-        pass
 
 
 def get_cookie_element(driver: webdriver.Chrome):
@@ -152,7 +101,9 @@ def get_buildings(driver: webdriver.Chrome) -> List[BuildingInfo]:
     return buildings
 
 
-def choose_best_building(buildings: List[BuildingInfo], current_cookies: float) -> Optional[BuildingInfo]:
+def choose_best_building(
+    buildings: List[BuildingInfo], current_cookies: float
+) -> Optional[BuildingInfo]:
     affordable = [b for b in buildings if b.price and b.price <= current_cookies]
     if not affordable:
         return None
