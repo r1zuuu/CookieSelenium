@@ -4,9 +4,9 @@ Konfiguracja bota - tu zmieniasz ustawienia
 
 # === GŁÓWNE USTAWIENIA ===
 RUNTIME_SECONDS = 3600  # ile sekund ma działać bot (0 = bez limitu)
-CLICK_BATCH = 50  # ile razy klikać ciastko na raz (więcej = szybsze zbieranie)
+CLICK_BATCH = 100  # ile razy klikać ciastko na raz (więcej = szybsze zbieranie)
 STATUS_INTERVAL = 10  # co ile sekund pokazywać status
-BUY_CHECK_INTERVAL = 1.0  # co ile sekund sprawdzać czy coś kupić
+BUY_CHECK_INTERVAL = 0.5  # co ile sekund sprawdzać czy coś kupić
 MAX_PAYBACK_SECONDS = 300  # max czas zwrotu inwestycji dla budynków
 
 # === SERWER ===

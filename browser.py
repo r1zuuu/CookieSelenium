@@ -2,6 +2,8 @@
 Konfiguracja i inicjalizacja przeglądarki
 """
 
+import time
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -51,11 +53,18 @@ def setup_driver():
         )
         lang_btn.click()
         print("Wybrałem język angielski")
-        # czekamy aż strona się przeładuje
+        # czekamy aż strona się przeładuje - dłuższy timeout i staleness check
+        time.sleep(2)  # daj czas na przeładowanie
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.ID, "bigCookie"))
+        )
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "bigCookie"))
         )
+        print("Gra przeładowana!")
     except TimeoutException:
         pass  # nie ma wyboru języka
+    except Exception:
+        pass  # inny błąd - kontynuuj
 
     return driver

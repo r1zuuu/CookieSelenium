@@ -1,7 +1,3 @@
-"""
-Funkcje do interakcji z grą - czysto przez Selenium, bez JS
-"""
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -24,7 +20,6 @@ def click_golden_cookies(driver):
     """zbiera złote ciastka jeśli są"""
     clicked = 0
     try:
-        # złote ciastka mają klasę "shimmer"
         shimmers = driver.find_elements(By.CSS_SELECTOR, ".shimmer")
         for shimmer in shimmers:
             try:
